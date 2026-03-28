@@ -11,6 +11,8 @@ import model.Student;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnrollmentPanel extends JPanel {
 
@@ -24,6 +26,11 @@ public class EnrollmentPanel extends JPanel {
     };
     private final JTable table = new JTable(tableModel);
 
+    // Search fields
+    private final JTextField searchStudent = new JTextField(15);
+    private final JTextField searchCourse  = new JTextField(15);
+
+    // Form fields
     private final JComboBox<Student> studentCombo = new JComboBox<>();
     private final JComboBox<Course>  courseCombo  = new JComboBox<>();
     private final JComboBox<Grade>   gradeCombo   = new JComboBox<>(Grade.values());
@@ -32,6 +39,22 @@ public class EnrollmentPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // ── Search bar ────────────────────────────────────────────────────
+        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        searchBar.setBorder(BorderFactory.createTitledBorder("Search"));
+        searchBar.add(new JLabel("Student Name:"));
+        searchBar.add(searchStudent);
+        searchBar.add(new JLabel("Course Name:"));
+        searchBar.add(searchCourse);
+        JButton btnSearch      = new JButton("Search");
+        JButton btnClearSearch = new JButton("Clear");
+        btnSearch.addActionListener(e      -> applySearch());
+        btnClearSearch.addActionListener(e -> { searchStudent.setText(""); searchCourse.setText(""); refresh(); });
+        searchBar.add(btnSearch);
+        searchBar.add(btnClearSearch);
+        add(searchBar, BorderLayout.NORTH);
+
+        // ── Table ─────────────────────────────────────────────────────────
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> onRowSelected());
         add(new JScrollPane(table), BorderLayout.CENTER);
@@ -58,6 +81,7 @@ public class EnrollmentPanel extends JPanel {
             }
         });
 
+        // ── Form + buttons ────────────────────────────────────────────────
         JPanel right = new JPanel();
         right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
         right.setBorder(BorderFactory.createTitledBorder("Enrollment"));
@@ -65,24 +89,21 @@ public class EnrollmentPanel extends JPanel {
         right.add(new JLabel("Student:"));
         right.add(studentCombo);
         right.add(Box.createVerticalStrut(6));
-
         right.add(new JLabel("Course:"));
         right.add(courseCombo);
         right.add(Box.createVerticalStrut(6));
-
         right.add(new JLabel("Grade:"));
         right.add(gradeCombo);
         right.add(Box.createVerticalStrut(12));
 
-        JButton btnAdd    = new JButton("Enroll");
-        JButton btnUpdate = new JButton("Update Grade");
-        JButton btnDelete = new JButton("Remove");
+        JButton btnAdd     = new JButton("Enroll");
+        JButton btnUpdate  = new JButton("Update Grade");
+        JButton btnDelete  = new JButton("Remove");
         JButton btnRefresh = new JButton("Refresh Lists");
 
         btnAdd.addActionListener(e     -> add());
         btnUpdate.addActionListener(e  -> update());
         btnDelete.addActionListener(e  -> delete());
-        // Refresh reloads students/courses in case new ones were added in other tabs
         btnRefresh.addActionListener(e -> { loadCombos(); refresh(); });
 
         for (JButton b : new JButton[]{btnAdd, btnUpdate, btnDelete, btnRefresh}) {
@@ -96,6 +117,27 @@ public class EnrollmentPanel extends JPanel {
         refresh();
     }
 
+    // ── Search ────────────────────────────────────────────────────────────
+
+    private void applySearch() {
+        String student = searchStudent.getText().trim();
+        String course  = searchCourse.getText().trim();
+
+        List<Enrollment> results;
+
+        if (!student.isEmpty()) {
+            results = enrollmentDao.getByStudentName(student);
+        } else if (!course.isEmpty()) {
+            results = enrollmentDao.getByCourseName(course);
+        } else {
+            results = new ArrayList<>();
+        }
+
+        loadTable(results);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+
     private void loadCombos() {
         studentCombo.removeAllItems();
         for (Student s : studentDao.getAll()) studentCombo.addItem(s);
@@ -105,10 +147,12 @@ public class EnrollmentPanel extends JPanel {
     }
 
     private void refresh() {
+        loadTable(enrollmentDao.getAll());
+    }
+
+    private void loadTable(List<Enrollment> enrollments) {
         tableModel.setRowCount(0);
-        // Use getAll() — student and course names are stored as strings in the table
-        // so we are NOT relying on lazy-loaded references later
-        for (Enrollment e : enrollmentDao.getAll()) {
+        for (Enrollment e : enrollments) {
             String studentName = (e.getStudent() != null) ? e.getStudent().getName() : "—";
             String courseName  = (e.getCourse()  != null) ? e.getCourse().getName()  : "—";
             tableModel.addRow(new Object[]{e.getId(), studentName, courseName, e.getGrade()});
@@ -118,9 +162,7 @@ public class EnrollmentPanel extends JPanel {
     private void onRowSelected() {
         int row = table.getSelectedRow();
         if (row < 0) return;
-        // Only sync the grade combo — student/course can't be changed after enrolling
-        Object grade = tableModel.getValueAt(row, 3);
-        gradeCombo.setSelectedItem(grade);
+        gradeCombo.setSelectedItem(tableModel.getValueAt(row, 3));
     }
 
     private long selectedId() {
@@ -128,11 +170,12 @@ public class EnrollmentPanel extends JPanel {
         return row < 0 ? -1L : (long) tableModel.getValueAt(row, 0);
     }
 
+    // ── CRUD ──────────────────────────────────────────────────────────────
+
     private void add() {
         Student student = (Student) studentCombo.getSelectedItem();
         Course  course  = (Course)  courseCombo.getSelectedItem();
         Grade   grade   = (Grade)   gradeCombo.getSelectedItem();
-
         if (student == null || course == null) {
             JOptionPane.showMessageDialog(this, "Please select a student and a course.");
             return;
@@ -149,7 +192,6 @@ public class EnrollmentPanel extends JPanel {
         long id = selectedId();
         if (id < 0) { JOptionPane.showMessageDialog(this, "Select an enrollment first."); return; }
         try {
-            // Fetch fresh from DB, then only change the grade
             Enrollment enrollment = enrollmentDao.getEnrollmentById(id);
             enrollment.setGrade((Grade) gradeCombo.getSelectedItem());
             enrollmentDao.update(enrollment);
@@ -164,10 +206,7 @@ public class EnrollmentPanel extends JPanel {
         if (id < 0) { JOptionPane.showMessageDialog(this, "Select an enrollment first."); return; }
         if (JOptionPane.showConfirmDialog(this, "Remove this enrollment?") != JOptionPane.YES_OPTION) return;
         try {
-            // Fetch fresh from DB — the lazy student/course fields will be null
-            // on a detached object, which breaks EnrollmentDao.delete()
-            Enrollment enrollment = enrollmentDao.getEnrollmentById(id);
-            enrollmentDao.delete(enrollment);
+            enrollmentDao.delete(enrollmentDao.getEnrollmentById(id));
             refresh();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Delete failed: " + ex.getMessage());

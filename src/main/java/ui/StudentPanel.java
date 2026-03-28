@@ -6,35 +6,54 @@ import model.Student;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class StudentPanel extends JPanel {
 
-    // ── DAO ───────────────────────────────────────────────────────────────
     private final StudentDao dao = new StudentDao();
 
-    // ── Table ─────────────────────────────────────────────────────────────
-    private final String[] COLUMNS = {"ID", "Name", "Email", "Faculty №"};
+    private final String[] COLUMNS = {"ID", "Name", "Email", "Faculty Number"};
     private final DefaultTableModel tableModel = new DefaultTableModel(COLUMNS, 0) {
         @Override public boolean isCellEditable(int r, int c) { return false; }
     };
     private final JTable table = new JTable(tableModel);
 
-    // ── Input fields ──────────────────────────────────────────────────────
-    private final JTextField nameField   = new JTextField(20);
-    private final JTextField emailField  = new JTextField(20);
-    private final JTextField facNumField = new JTextField(20);
+    // Search fields
+    private final JTextField searchName   = new JTextField(15);
+    private final JTextField searchFacNum = new JTextField(10);
+
+    // Form fields
+    private final JTextField nameField   = new JTextField(10);
+    private final JTextField emailField  = new JTextField(10);
+    private final JTextField facNumField = new JTextField(10);
 
     public StudentPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Table (left / center)
+        // ── Search bar ────────────────────────────────────────────────────
+        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        searchBar.setBorder(BorderFactory.createTitledBorder("Search"));
+        searchBar.add(new JLabel("Name:"));
+        searchBar.add(searchName);
+        searchBar.add(new JLabel("Faculty Number:"));
+        searchBar.add(searchFacNum);
+        JButton btnSearch = new JButton("Search");
+        JButton btnClearSearch = new JButton("Clear");
+        btnSearch.addActionListener(e -> applySearch());
+        btnClearSearch.addActionListener(e -> {
+            searchName.setText(""); searchFacNum.setText(""); refresh(); });
+        searchBar.add(btnSearch);
+        searchBar.add(btnClearSearch);
+        add(searchBar, BorderLayout.NORTH);
+
+        // ── Table ─────────────────────────────────────────────────────────
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.getSelectionModel().addListSelectionListener(e -> onRowSelected());
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Right panel: form + buttons
+        // ── Form + buttons ────────────────────────────────────────────────
         JPanel right = new JPanel();
         right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
         right.setBorder(BorderFactory.createTitledBorder("Student"));
@@ -42,16 +61,13 @@ public class StudentPanel extends JPanel {
         right.add(new JLabel("Name:"));
         right.add(nameField);
         right.add(Box.createVerticalStrut(6));
-
         right.add(new JLabel("Email:"));
         right.add(emailField);
         right.add(Box.createVerticalStrut(6));
-
-        right.add(new JLabel("Faculty №:"));
+        right.add(new JLabel("Faculty Number:"));
         right.add(facNumField);
         right.add(Box.createVerticalStrut(12));
 
-        // Buttons
         JButton btnAdd    = new JButton("Add");
         JButton btnUpdate = new JButton("Update");
         JButton btnDelete = new JButton("Delete");
@@ -72,34 +88,52 @@ public class StudentPanel extends JPanel {
         refresh();
     }
 
+    // ── Search ────────────────────────────────────────────────────────────
+
+    private void applySearch() {
+        String name   = searchName.getText().trim();
+        String facNum = searchFacNum.getText().trim();
+
+        List<Student> results;
+
+        if (!name.isEmpty()) {
+            results = dao.getByName(name);
+        } else if (!facNum.isEmpty()) {
+            results = dao.getByFacNum(facNum);
+        } else {
+            // Both empty — show nothing
+            results = new ArrayList<>();
+        }
+
+        loadTable(results);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    /** Reload all rows from the database. */
     private void refresh() {
+        loadTable(dao.getAll());
+    }
+
+    private void loadTable(List<Student> students) {
         tableModel.setRowCount(0);
-        for (Student s : dao.getAll()) {
+        for (Student s : students) {
             tableModel.addRow(new Object[]{s.getId(), s.getName(), s.getEmail(), s.getFacNum()});
         }
     }
 
-    /** Fill form when user clicks a table row. */
     private void onRowSelected() {
         int row = table.getSelectedRow();
         if (row < 0) return;
-        nameField.setText((String) tableModel.getValueAt(row, 1));
-        emailField.setText((String) tableModel.getValueAt(row, 2));
+        nameField.setText((String)   tableModel.getValueAt(row, 1));
+        emailField.setText((String)  tableModel.getValueAt(row, 2));
         facNumField.setText((String) tableModel.getValueAt(row, 3));
     }
 
-    /** Reset form and table selection. */
     private void clear() {
-        nameField.setText("");
-        emailField.setText("");
-        facNumField.setText("");
+        nameField.setText(""); emailField.setText(""); facNumField.setText("");
         table.clearSelection();
     }
 
-    /** Get the ID of the selected row, or -1 if nothing selected. */
     private long selectedId() {
         int row = table.getSelectedRow();
         if (row < 0) return -1L;
@@ -112,15 +146,13 @@ public class StudentPanel extends JPanel {
         String name   = nameField.getText().trim();
         String email  = emailField.getText().trim();
         String facNum = facNumField.getText().trim();
-
         if (name.isEmpty() || email.isEmpty() || facNum.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields.");
             return;
         }
         try {
             dao.save(new Student(name, email, facNum));
-            refresh();
-            clear();
+            refresh(); clear();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Save failed: " + ex.getMessage());
         }
@@ -129,16 +161,13 @@ public class StudentPanel extends JPanel {
     private void update() {
         long id = selectedId();
         if (id < 0) { JOptionPane.showMessageDialog(this, "Select a student first."); return; }
-
         try {
-            // Always fetch fresh from DB before modifying
             Student s = dao.getStudentById(id);
             s.setName(nameField.getText().trim());
             s.setEmail(emailField.getText().trim());
             s.setFacNum(facNumField.getText().trim());
             dao.update(s);
-            refresh();
-            clear();
+            refresh(); clear();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Update failed: " + ex.getMessage());
         }
@@ -147,16 +176,10 @@ public class StudentPanel extends JPanel {
     private void delete() {
         long id = selectedId();
         if (id < 0) { JOptionPane.showMessageDialog(this, "Select a student first."); return; }
-
-        int confirm = JOptionPane.showConfirmDialog(this, "Delete this student?");
-        if (confirm != JOptionPane.YES_OPTION) return;
-
+        if (JOptionPane.showConfirmDialog(this, "Delete this student?") != JOptionPane.YES_OPTION) return;
         try {
-            // Fetch fresh from DB — passing a detached object causes errors
-            Student s = dao.getStudentById(id);
-            dao.delete(s);
-            refresh();
-            clear();
+            dao.delete(dao.getStudentById(id));
+            refresh(); clear();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Delete failed: " + ex.getMessage());
         }

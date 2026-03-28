@@ -75,4 +75,14 @@ public class AcademicStaff {
     public void setCourses(List<Course> courses) {
         this.courses = courses;
     }
+
+    @Override
+    public String toString() {
+        return "AcademicStaff{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", title='" + title + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

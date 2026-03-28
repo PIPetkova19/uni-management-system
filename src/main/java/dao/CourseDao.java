@@ -1,8 +1,10 @@
 package dao;
 
 import jakarta.persistence.EntityManager;
-import model.Course;
 import model.AcademicStaff;
+import model.Course;
+
+import java.util.List;
 
 import static utils.JpaUtil.emf;
 
@@ -12,8 +14,19 @@ public class CourseDao {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
+
+                // If a staff member is assigned, use the helper to link both sides
+                AcademicStaff staff = course.getAcademicStaff();
+                if (staff != null) {
+                    AcademicStaff managedStaff = em.merge(staff);
+                    // Reset first so addCourse can set both sides cleanly
+                    course.setAcademicStaff(null);
+                    managedStaff.addCourse(course);
+                }
+
                 em.persist(course);
                 em.getTransaction().commit();
+
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error saving course", e);
@@ -29,42 +42,67 @@ public class CourseDao {
         }
     }
 
-    public void update(Course course) {
-        EntityManager em = null;
-        try {
-            em = emf.createEntityManager();
-            em.getTransaction().begin();
-            em.merge(course);
-            em.getTransaction().commit();
+    public List<Course> getAll() {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery("SELECT c FROM Course c", Course.class).getResultList();
         } catch (Exception e) {
-            if (em != null && em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw new RuntimeException("Error updating course", e);
-        } finally {
-            if (em != null) em.close();
+            throw new RuntimeException("Error finding courses", e);
+        }
+    }
+
+    public void update(Course course) {
+        try (EntityManager em = emf.createEntityManager()) {
+            try {
+                em.getTransaction().begin();
+
+                Course managedCourse = em.merge(course);
+
+                // Re-link the staff using the helper so both sides stay in sync
+                AcademicStaff newStaff = course.getAcademicStaff();
+
+                // Remove from old staff if different
+                AcademicStaff oldStaff = managedCourse.getAcademicStaff();
+                if (oldStaff != null && !oldStaff.equals(newStaff)) {
+                    oldStaff.removeCourse(managedCourse);
+                }
+
+                // Add to new staff
+                if (newStaff != null) {
+                    AcademicStaff managedStaff = em.merge(newStaff);
+                    managedStaff.addCourse(managedCourse);
+                } else {
+                    managedCourse.setAcademicStaff(null);
+                }
+
+                em.getTransaction().commit();
+
+            } catch (Exception e) {
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                throw new RuntimeException("Error updating course", e);
+            }
         }
     }
 
     public void delete(Course course) {
-        EntityManager em = null;
-        try {
-            em = emf.createEntityManager();
-            em.getTransaction().begin();
+        try (EntityManager em = emf.createEntityManager()) {
+            try {
+                em.getTransaction().begin();
 
-            // Премахваме връзките с academicStaff
-            AcademicStaff staff = course.getAcademicStaff();
-            if (staff != null) {
-                staff.getCourses().remove(course);
-                em.merge(staff);
+                Course managedCourse = em.merge(course);
+
+                // Use the helper to cleanly unlink from staff on both sides
+                AcademicStaff staff = managedCourse.getAcademicStaff();
+                if (staff != null) {
+                    staff.removeCourse(managedCourse);
+                }
+
+                em.remove(managedCourse);
+                em.getTransaction().commit();
+
+            } catch (Exception e) {
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                throw new RuntimeException("Error deleting course", e);
             }
-
-            em.remove(em.contains(course) ? course : em.merge(course));
-
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em != null && em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw new RuntimeException("Error deleting course", e);
-        } finally {
-            if (em != null) em.close();
         }
     }
 }

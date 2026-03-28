@@ -13,7 +13,7 @@ public class Course {
 
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private AcademicStaff academicStaff;
 
     @OneToMany(mappedBy = "course",
@@ -64,5 +64,14 @@ public class Course {
 
     public void setEnrollments(List<Enrollment> enrollments) {
         this.enrollments = enrollments;
+    }
+
+    @Override
+    public String toString() {
+        return "Course{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", academicStaff=" + academicStaff +
+                '}';
     }
 }

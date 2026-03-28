@@ -13,10 +13,10 @@ public class Enrollment {
     @Enumerated(EnumType.STRING)
     private Grade grade;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Student student;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Course course;
 
     public Enrollment() {}
@@ -53,5 +53,15 @@ public class Enrollment {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+
+    @Override
+    public String toString() {
+        return "Enrollment{" +
+                "id=" + id +
+                ", grade=" + grade +
+                ", student=" + student +
+                ", course=" + course +
+                '}';
     }
 }

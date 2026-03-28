@@ -1,10 +1,9 @@
 package dao;
 
 import jakarta.persistence.EntityManager;
-import model.Course;
-import model.Enrollment;
-import model.Student;
-import model.Grade;
+import model.*;
+
+import java.util.List;
 
 import static utils.JpaUtil.emf;
 
@@ -15,26 +14,20 @@ public class EnrollmentDao {
             try {
                 em.getTransaction().begin();
 
+                Student managedStudent = em.merge(student);
+                Course  managedCourse  = em.merge(course);
+
                 Enrollment enrollment = new Enrollment();
-                enrollment.setStudent(student);
-                enrollment.setCourse(course);
                 enrollment.setGrade(grade);
 
-                //!
-                student.getEnrollments().add(enrollment);
-                course.getEnrollments().add(enrollment);
+                managedStudent.addEnrollment(enrollment);
+                managedCourse.addEnrollment(enrollment);
 
                 em.persist(enrollment);
-
-                // Ако student или course са detached, merge ги
-                em.merge(student);
-                em.merge(course);
-
                 em.getTransaction().commit();
+
             } catch (Exception e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error saving enrollment", e);
             }
         }
@@ -44,6 +37,22 @@ public class EnrollmentDao {
         try (EntityManager em = emf.createEntityManager()) {
             return em.find(Enrollment.class, id);
         } catch (Exception e) {
+            throw new RuntimeException("Error finding enrollment", e);
+        }
+    }
+
+    public List<Enrollment> getAll() {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery("SELECT e FROM Enrollment e", Enrollment.class).getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding enrollment", e);
+        }
+    }
+
+    public Enrollment getEnrollmentByGrade(Grade grade) {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.find(Enrollment.class, grade);
+        }catch (Exception e) {
             throw new RuntimeException("Error finding enrollment", e);
         }
     }
@@ -69,23 +78,16 @@ public class EnrollmentDao {
             try {
                 em.getTransaction().begin();
 
-                // !
-                Student student = enrollment.getStudent();
-                Course course = enrollment.getCourse();
+                Enrollment managed = em.merge(enrollment);
 
-                if (student != null) student.getEnrollments().remove(enrollment);
-                if (course != null) course.getEnrollments().remove(enrollment);
+                if (managed.getStudent() != null) managed.getStudent().removeEnrollment(managed);
+                if (managed.getCourse()  != null) managed.getCourse().removeEnrollment(managed);
 
-                if (student != null) em.merge(student);
-                if (course != null) em.merge(course);
-
-                em.remove(em.contains(enrollment) ? enrollment : em.merge(enrollment));
-
+                em.remove(managed);
                 em.getTransaction().commit();
+
             } catch (Exception e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error deleting enrollment", e);
             }
         }

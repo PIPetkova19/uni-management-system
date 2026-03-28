@@ -4,6 +4,8 @@ import jakarta.persistence.EntityManager;
 import model.AcademicStaff;
 import model.Course;
 
+import java.util.List;
+
 import static utils.JpaUtil.emf;
 
 public class AcademicStaffDao {
@@ -29,43 +31,47 @@ public class AcademicStaffDao {
         }
     }
 
-    public void update(AcademicStaff staff) {
-        EntityManager em = null;
-        try {
-            em = emf.createEntityManager();
-            em.getTransaction().begin();
-
-            em.merge(staff);
-
-            em.getTransaction().commit();
+    public List<AcademicStaff> getAll() {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery("SELECT a FROM AcademicStaff a", AcademicStaff.class).getResultList();
         } catch (Exception e) {
-            if (em != null && em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw new RuntimeException("Error updating academic staff", e);
-        } finally {
-            if (em != null) em.close();
+            throw new RuntimeException("Error finding academic staff", e);
+        }
+    }
+
+    public void update(AcademicStaff staff) {
+        try (EntityManager em = emf.createEntityManager()) {
+            try {
+                em.getTransaction().begin();
+                em.merge(staff);
+                em.getTransaction().commit();
+            } catch (Exception e) {
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                throw new RuntimeException("Error updating academic staff", e);
+            }
         }
     }
 
     public void delete(AcademicStaff staff) {
-        EntityManager em = null;
-        try {
-            em = emf.createEntityManager();
-            em.getTransaction().begin();
+        try (EntityManager em = emf.createEntityManager()) {
+            try {
+                em.getTransaction().begin();
 
-            // !
-            for (Course c : staff.getCourses()) {
-                c.setAcademicStaff(null);
-                em.merge(c);
+                AcademicStaff managed = em.merge(staff);
+
+                // Use the helper to unlink each course from this staff on both sides
+                // We iterate over a copy to avoid ConcurrentModificationException
+                for (Course course : List.copyOf(managed.getCourses())) {
+                    managed.removeCourse(course);
+                }
+
+                em.remove(managed);
+                em.getTransaction().commit();
+
+            } catch (Exception e) {
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                throw new RuntimeException("Error deleting academic staff", e);
             }
-
-            em.remove(em.contains(staff) ? staff : em.merge(staff));
-
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em != null && em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw new RuntimeException("Error deleting academic staff", e);
-        } finally {
-            if (em != null) em.close();
         }
     }
 }

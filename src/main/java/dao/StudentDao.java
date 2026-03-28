@@ -39,6 +39,27 @@ public class StudentDao {
             throw new RuntimeException("Error finding students", e);
         }
     }
+    public List<Student> getByName(String name) {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery(
+                            "SELECT s FROM Student s WHERE LOWER(s.name) LIKE LOWER(:name)", Student.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding students by name", e);
+        }
+    }
+
+    public List<Student> getByFacNum(String facNum) {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery(
+                            "SELECT s FROM Student s WHERE LOWER(s.facNum) LIKE LOWER(:facNum)", Student.class)
+                    .setParameter("facNum", "%" + facNum + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding students by faculty number", e);
+        }
+    }
 
     public void update(Student student) {
         try (EntityManager em = emf.createEntityManager()) {

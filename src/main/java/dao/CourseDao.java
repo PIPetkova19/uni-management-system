@@ -53,7 +53,7 @@ public class CourseDao {
     public List<Course> getByName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT c FROM Course c WHERE LOWER(c.name) LIKE LOWER(:name)", Course.class)
+                            "SELECT c FROM Course c WHERE c.name LIKE :name", Course.class)
                     .setParameter("name", "%" + name + "%")
                     .getResultList();
         } catch (Exception e) {
@@ -64,7 +64,7 @@ public class CourseDao {
     public List<Course> getByInstructor(String instructorName) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT c FROM Course c JOIN c.academicStaff a WHERE LOWER(a.name) LIKE LOWER(:name)", Course.class)
+                            "SELECT c FROM Course c JOIN c.academicStaff a WHERE a.name LIKE :name", Course.class)
                     .setParameter("name", "%" + instructorName + "%")
                     .getResultList();
         } catch (Exception e) {

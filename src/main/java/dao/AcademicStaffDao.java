@@ -3,7 +3,6 @@ package dao;
 import jakarta.persistence.EntityManager;
 import model.AcademicStaff;
 import model.Course;
-import model.Student;
 
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class AcademicStaffDao {
     public List<AcademicStaff> getByName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT a FROM AcademicStaff a WHERE LOWER(a.name) LIKE LOWER(:name)", AcademicStaff.class)
+                            "SELECT a FROM AcademicStaff a WHERE a.name LIKE :name", AcademicStaff.class)
                     .setParameter("name", "%" + name + "%")
                     .getResultList();
         } catch (Exception e) {
@@ -55,7 +54,7 @@ public class AcademicStaffDao {
     public List<AcademicStaff> getByEmail(String email) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT a FROM AcademicStaff a WHERE LOWER(a.email) LIKE LOWER(:email)", AcademicStaff.class)
+                            "SELECT a FROM AcademicStaff a WHERE a.email LIKE :email", AcademicStaff.class)
                     .setParameter("email", "%" + email + "%")
                     .getResultList();
         } catch (Exception e) {

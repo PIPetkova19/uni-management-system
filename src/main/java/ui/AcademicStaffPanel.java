@@ -2,183 +2,87 @@ package ui;
 
 import dao.AcademicStaffDao;
 import model.AcademicStaff;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AcademicStaffPanel extends JPanel {
-
     private final AcademicStaffDao dao = new AcademicStaffDao();
+    private final DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Name", "Title", "Email"}, 0);
+    private final JTable table = new JTable(model);
 
-    private final String[] COLUMNS = {"ID", "Name", "Title", "Email"};
-    private final DefaultTableModel tableModel = new DefaultTableModel(COLUMNS, 0) {
-        @Override public boolean isCellEditable(int r, int c) { return false; }
-    };
-    private final JTable table = new JTable(tableModel);
-
-    // Search fields
-    private final JTextField searchName  = new JTextField(15);
-    private final JTextField searchEmail = new JTextField(15);
-
-    // Form fields
-    private final JTextField nameField  = new JTextField(20);
-    private final JTextField titleField = new JTextField(20);
-    private final JTextField emailField = new JTextField(20);
+    private final JTextField sName = new JTextField(10), sEmail = new JTextField(10);
+    private final JTextField fName = new JTextField(10), fTitle = new JTextField(10), fEmail = new JTextField(10);
 
     public AcademicStaffPanel() {
         setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // ── Search bar ────────────────────────────────────────────────────
-        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        searchBar.setBorder(BorderFactory.createTitledBorder("Search"));
-        searchBar.add(new JLabel("Name:"));
-        searchBar.add(searchName);
-        searchBar.add(new JLabel("Email:"));
-        searchBar.add(searchEmail);
-        JButton btnSearch      = new JButton("Search");
-        JButton btnClearSearch = new JButton("Clear");
-        btnSearch.addActionListener(e      -> applySearch());
-        btnClearSearch.addActionListener(e -> { searchName.setText(""); searchEmail.setText(""); refresh(); });
-        searchBar.add(btnSearch);
-        searchBar.add(btnClearSearch);
-        add(searchBar, BorderLayout.NORTH);
+        JPanel north = new JPanel();
+        north.add(new JLabel("Name:")); north.add(sName);
+        north.add(new JLabel("Email:")); north.add(sEmail);
+        JButton btnSearch = new JButton("Search");
+        JButton btnClear = new JButton("Clear");
+        north.add(btnSearch); north.add(btnClear);
+        add(north, BorderLayout.NORTH);
 
-        // ── Table ─────────────────────────────────────────────────────────
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getSelectionModel().addListSelectionListener(e -> onRowSelected());
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // ── Form + buttons ────────────────────────────────────────────────
-        JPanel right = new JPanel();
-        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-        right.setBorder(BorderFactory.createTitledBorder("Academic Staff"));
+        JPanel south = new JPanel(new GridLayout(2, 4, 5, 5));
+        south.add(new JLabel("Name:")); south.add(fName);
+        JButton btnAdd = new JButton("Add");
+        JButton btnUpd = new JButton("Update");
+        south.add(btnAdd); south.add(btnUpd);
 
-        right.add(new JLabel("Name:"));
-        right.add(nameField);
-        right.add(Box.createVerticalStrut(6));
-        right.add(new JLabel("Title (e.g. Professor):"));
-        right.add(titleField);
-        right.add(Box.createVerticalStrut(6));
-        right.add(new JLabel("Email:"));
-        right.add(emailField);
-        right.add(Box.createVerticalStrut(12));
+        south.add(new JLabel("Title/Email:"));
+        JPanel pair = new JPanel(new GridLayout(1, 2)); pair.add(fTitle); pair.add(fEmail);
+        south.add(pair);
+        JButton btnDel = new JButton("Delete");
+        JButton btnRes = new JButton("Reset");
+        south.add(btnDel); south.add(btnRes);
+        add(south, BorderLayout.SOUTH);
 
-        JButton btnAdd    = new JButton("Add");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Delete");
-        JButton btnClear  = new JButton("Clear");
+        btnSearch.addActionListener(e -> search());
+        btnClear.addActionListener(e -> { sName.setText(""); sEmail.setText(""); load(); });
+        btnAdd.addActionListener(e -> { dao.save(new AcademicStaff(fName.getText(), fTitle.getText(), fEmail.getText())); load(); });
+        btnUpd.addActionListener(e -> update());
+        btnDel.addActionListener(e -> delete());
+        btnRes.addActionListener(e -> reset());
+        table.getSelectionModel().addListSelectionListener(e -> fillForm());
 
-        btnAdd.addActionListener(e    -> add());
-        btnUpdate.addActionListener(e -> update());
-        btnDelete.addActionListener(e -> delete());
-        btnClear.addActionListener(e  -> clear());
-
-        for (JButton b : new JButton[]{btnAdd, btnUpdate, btnDelete, btnClear}) {
-            b.setAlignmentX(Component.LEFT_ALIGNMENT);
-            right.add(b);
-            right.add(Box.createVerticalStrut(4));
-        }
-
-        add(right, BorderLayout.EAST);
-        refresh();
+        load();
     }
 
-    // ── Search ────────────────────────────────────────────────────────────
-
-    private void applySearch() {
-        String name  = searchName.getText().trim();
-        String email = searchEmail.getText().trim();
-
-        List<AcademicStaff> results;
-
-        if (!name.isEmpty()) {
-            results = dao.getByName(name);
-        } else if (!email.isEmpty()) {
-            results = dao.getByEmail(email);
-        } else {
-            results = new ArrayList<>();
-        }
-
-        loadTable(results);
+    private void load() {
+        model.setRowCount(0);
+        dao.getAll().forEach(a -> model.addRow(new Object[]{a.getId(), a.getName(), a.getTitle(), a.getEmail()}));
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
-
-    private void refresh() {
-        loadTable(dao.getAll());
-    }
-
-    private void loadTable(List<AcademicStaff> list) {
-        tableModel.setRowCount(0);
-        for (AcademicStaff a : list) {
-            tableModel.addRow(new Object[]{a.getId(), a.getName(), a.getTitle(), a.getEmail()});
-        }
-    }
-
-    private void onRowSelected() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
-        nameField.setText((String)  tableModel.getValueAt(row, 1));
-        titleField.setText((String) tableModel.getValueAt(row, 2));
-        emailField.setText((String) tableModel.getValueAt(row, 3));
-    }
-
-    private void clear() {
-        nameField.setText(""); titleField.setText(""); emailField.setText("");
-        table.clearSelection();
-    }
-
-    private long selectedId() {
-        int row = table.getSelectedRow();
-        return row < 0 ? -1L : (long) tableModel.getValueAt(row, 0);
-    }
-
-    // ── CRUD ──────────────────────────────────────────────────────────────
-
-    private void add() {
-        String name  = nameField.getText().trim();
-        String title = titleField.getText().trim();
-        String email = emailField.getText().trim();
-        if (name.isEmpty() || title.isEmpty() || email.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields.");
-            return;
-        }
-        try {
-            dao.save(new AcademicStaff(name, title, email));
-            refresh(); clear();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Save failed: " + ex.getMessage());
-        }
+    private void search() {
+        model.setRowCount(0);
+        List<AcademicStaff> list = !sName.getText().isEmpty() ? dao.getByName(sName.getText()) :
+                !sEmail.getText().isEmpty() ? dao.getByEmail(sEmail.getText()) : dao.getAll();
+        list.forEach(a -> model.addRow(new Object[]{a.getId(), a.getName(), a.getTitle(), a.getEmail()}));
     }
 
     private void update() {
-        long id = selectedId();
-        if (id < 0) { JOptionPane.showMessageDialog(this, "Select a staff member first."); return; }
-        try {
-            AcademicStaff a = dao.getStaffById(id);
-            a.setName(nameField.getText().trim());
-            a.setTitle(titleField.getText().trim());
-            a.setEmail(emailField.getText().trim());
-            dao.update(a);
-            refresh(); clear();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Update failed: " + ex.getMessage());
+        int r = table.getSelectedRow();
+        if (r != -1) {
+            AcademicStaff a = dao.getStaffById((long)model.getValueAt(r, 0));
+            a.setName(fName.getText()); a.setTitle(fTitle.getText()); a.setEmail(fEmail.getText());
+            dao.update(a); load();
         }
     }
 
     private void delete() {
-        long id = selectedId();
-        if (id < 0) { JOptionPane.showMessageDialog(this, "Select a staff member first."); return; }
-        if (JOptionPane.showConfirmDialog(this, "Delete this staff member?") != JOptionPane.YES_OPTION) return;
-        try {
-            dao.delete(dao.getStaffById(id));
-            refresh(); clear();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Delete failed: " + ex.getMessage());
-        }
+        int r = table.getSelectedRow();
+        if (r != -1) { dao.delete(dao.getStaffById((long)model.getValueAt(r, 0))); load(); reset(); }
     }
+
+    private void fillForm() {
+        int r = table.getSelectedRow();
+        if (r != -1) { fName.setText(model.getValueAt(r,1).toString()); fTitle.setText(model.getValueAt(r,2).toString()); fEmail.setText(model.getValueAt(r,3).toString()); }
+    }
+
+    private void reset() { fName.setText(""); fTitle.setText(""); fEmail.setText(""); table.clearSelection(); }
 }

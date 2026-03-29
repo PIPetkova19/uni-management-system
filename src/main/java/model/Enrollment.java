@@ -57,11 +57,6 @@ public class Enrollment {
 
     @Override
     public String toString() {
-        return "Enrollment{" +
-                "id=" + id +
-                ", grade=" + grade +
-                ", student=" + student +
-                ", course=" + course +
-                '}';
+        return String.format("Enrollment: %s, %s, %s",student,course,grade);
     }
 }

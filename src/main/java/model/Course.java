@@ -68,10 +68,6 @@ public class Course {
 
     @Override
     public String toString() {
-        return "Course{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", academicStaff=" + academicStaff +
-                '}';
+        return String.format("Course: %s - %s",name,academicStaff.getName());
     }
 }

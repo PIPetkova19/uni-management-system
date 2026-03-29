@@ -9,45 +9,73 @@ import java.util.List;
 
 public class AcademicStaffPanel extends JPanel {
     private final AcademicStaffDao dao = new AcademicStaffDao();
-    private final DefaultTableModel model = new DefaultTableModel(new String[]{"ID", "Name", "Title", "Email"}, 0);
+    private final DefaultTableModel model = new DefaultTableModel(
+            new String[]{"Id", "Name", "Title", "Email"}, 0);
     private final JTable table = new JTable(model);
 
-    private final JTextField sName = new JTextField(10), sEmail = new JTextField(10);
-    private final JTextField fName = new JTextField(10), fTitle = new JTextField(10), fEmail = new JTextField(10);
+    private final JTextField sName = new JTextField(10),
+                            sEmail = new JTextField(10);
+    private final JTextField fName = new JTextField(10),
+                            fTitle = new JTextField(10),
+                            fEmail = new JTextField(10);
 
     public AcademicStaffPanel() {
         setLayout(new BorderLayout(10, 10));
 
         JPanel north = new JPanel();
-        north.add(new JLabel("Name:")); north.add(sName);
-        north.add(new JLabel("Email:")); north.add(sEmail);
+
+        north.add(new JLabel("Name:"));
+        north.add(sName);
+        north.add(new JLabel("Email:"));
+        north.add(sEmail);
+
         JButton btnSearch = new JButton("Search");
         JButton btnClear = new JButton("Clear");
-        north.add(btnSearch); north.add(btnClear);
+        north.add(btnSearch);
+        north.add(btnClear);
+
         add(north, BorderLayout.NORTH);
 
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        JPanel south = new JPanel(new GridLayout(2, 4, 5, 5));
-        south.add(new JLabel("Name:")); south.add(fName);
+        JPanel south = new JPanel(new GridLayout(3, 4, 30, 10));
+        south.add(new JLabel("Name:"));
+        south.add(fName);
+        south.add(new JLabel("Title:"));
+        south.add(fTitle);
+        south.add(new JLabel("Email:"));
+        south.add(fEmail);
+
+        south.add(new JLabel(""));
+        south.add(new JLabel(""));
+
         JButton btnAdd = new JButton("Add");
         JButton btnUpd = new JButton("Update");
-        south.add(btnAdd); south.add(btnUpd);
-
-        south.add(new JLabel("Title/Email:"));
-        JPanel pair = new JPanel(new GridLayout(1, 2)); pair.add(fTitle); pair.add(fEmail);
-        south.add(pair);
         JButton btnDel = new JButton("Delete");
         JButton btnRes = new JButton("Reset");
-        south.add(btnDel); south.add(btnRes);
+        south.add(btnAdd);
+        south.add(btnUpd);
+        south.add(btnDel);
+        south.add(btnRes);
+
         add(south, BorderLayout.SOUTH);
 
         btnSearch.addActionListener(e -> search());
-        btnClear.addActionListener(e -> { sName.setText(""); sEmail.setText(""); load(); });
-        btnAdd.addActionListener(e -> { dao.save(new AcademicStaff(fName.getText(), fTitle.getText(), fEmail.getText())); load(); });
+        btnClear.addActionListener(e -> {
+                sName.setText("");
+                sEmail.setText("");
+                load();
+        });
+        btnAdd.addActionListener(e -> {
+                dao.save(new AcademicStaff(fName.getText(),
+                                            fTitle.getText(),
+                                            fEmail.getText()));
+                                            load();
+        });
         btnUpd.addActionListener(e -> update());
         btnDel.addActionListener(e -> delete());
         btnRes.addActionListener(e -> reset());
+
         table.getSelectionModel().addListSelectionListener(e -> fillForm());
 
         load();
@@ -55,14 +83,24 @@ public class AcademicStaffPanel extends JPanel {
 
     private void load() {
         model.setRowCount(0);
-        dao.getAll().forEach(a -> model.addRow(new Object[]{a.getId(), a.getName(), a.getTitle(), a.getEmail()}));
+        dao.getAll().forEach(a -> model.addRow(
+                new Object[]{a.getId(), a.getName(), a.getTitle(), a.getEmail()})
+        );
     }
 
     private void search() {
         model.setRowCount(0);
-        List<AcademicStaff> list = !sName.getText().isEmpty() ? dao.getByName(sName.getText()) :
-                !sEmail.getText().isEmpty() ? dao.getByEmail(sEmail.getText()) : dao.getAll();
-        list.forEach(a -> model.addRow(new Object[]{a.getId(), a.getName(), a.getTitle(), a.getEmail()}));
+        List<AcademicStaff> list;
+        if (!sName.getText().isEmpty()) {
+            list = dao.getByName(sName.getText());
+        } else if (!sEmail.getText().isEmpty()) {
+            list = dao.getByEmail(sEmail.getText());
+        } else {
+            list = dao.getAll();
+        }
+        list.forEach(a -> model.addRow(
+                new Object[]{a.getId(), a.getName(), a.getTitle(), a.getEmail()})
+        );
     }
 
     private void update() {
@@ -70,19 +108,32 @@ public class AcademicStaffPanel extends JPanel {
         if (r != -1) {
             AcademicStaff a = dao.getStaffById((long)model.getValueAt(r, 0));
             a.setName(fName.getText()); a.setTitle(fTitle.getText()); a.setEmail(fEmail.getText());
-            dao.update(a); load();
+            dao.update(a);
+            load();
         }
     }
 
     private void delete() {
         int r = table.getSelectedRow();
-        if (r != -1) { dao.delete(dao.getStaffById((long)model.getValueAt(r, 0))); load(); reset(); }
+        if (r != -1) {
+            dao.delete(dao.getStaffById((long)model.getValueAt(r, 0)));
+            load();
+            reset();
+        }
     }
 
     private void fillForm() {
         int r = table.getSelectedRow();
-        if (r != -1) { fName.setText(model.getValueAt(r,1).toString()); fTitle.setText(model.getValueAt(r,2).toString()); fEmail.setText(model.getValueAt(r,3).toString()); }
+        if (r != -1) { fName.setText(model.getValueAt(r,1).toString());
+            fTitle.setText(model.getValueAt(r,2).toString());
+            fEmail.setText(model.getValueAt(r,3).toString());
+        }
     }
 
-    private void reset() { fName.setText(""); fTitle.setText(""); fEmail.setText(""); table.clearSelection(); }
+    private void reset() {
+        fName.setText("");
+        fTitle.setText("");
+        fEmail.setText("");
+        table.clearSelection();
+    }
 }

@@ -82,8 +82,6 @@ public class AcademicStaffDao {
 
                 AcademicStaff managed = em.merge(staff);
 
-                // Use the helper to unlink each course from this staff on both sides
-                // We iterate over a copy to avoid ConcurrentModificationException
                 for (Course course : List.copyOf(managed.getCourses())) {
                     managed.removeCourse(course);
                 }

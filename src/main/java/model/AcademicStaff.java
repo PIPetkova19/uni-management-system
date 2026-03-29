@@ -78,11 +78,6 @@ public class AcademicStaff {
 
     @Override
     public String toString() {
-        return "AcademicStaff{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", title='" + title + '\'' +
-                ", email='" + email + '\'' +
-                '}';
+        return String.format("%s %s",title,name);
     }
 }

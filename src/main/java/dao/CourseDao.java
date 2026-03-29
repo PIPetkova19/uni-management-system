@@ -15,11 +15,9 @@ public class CourseDao {
             try {
                 em.getTransaction().begin();
 
-                // If a staff member is assigned, use the helper to link both sides
                 AcademicStaff staff = course.getAcademicStaff();
                 if (staff != null) {
                     AcademicStaff managedStaff = em.merge(staff);
-                    // Reset first so addCourse can set both sides cleanly
                     course.setAcademicStaff(null);
                     managedStaff.addCourse(course);
                 }
@@ -112,7 +110,6 @@ public class CourseDao {
 
                 Course managedCourse = em.merge(course);
 
-                // Use the helper to cleanly unlink from staff on both sides
                 AcademicStaff staff = managedCourse.getAcademicStaff();
                 if (staff != null) {
                     staff.removeCourse(managedCourse);

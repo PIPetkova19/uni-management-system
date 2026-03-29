@@ -76,11 +76,6 @@ public class Student {
 
     @Override
     public String toString() {
-        return "Student{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", facNum='" + facNum + '\'' +
-                '}';
+        return String.format("Student: %s, %s",name,facNum);
     }
 }

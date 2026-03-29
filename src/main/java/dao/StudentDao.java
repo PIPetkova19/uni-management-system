@@ -39,6 +39,7 @@ public class StudentDao {
             throw new RuntimeException("Error finding students", e);
         }
     }
+
     public List<Student> getByName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(

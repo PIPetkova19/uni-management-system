@@ -106,7 +106,9 @@ public class EnrollmentPanel extends JPanel {
     private void search() {
         model.setRowCount(0);
         List<Enrollment> list;
-        if (!sStud.getText().isEmpty()) {
+        if (!sStud.getText().isEmpty() && !sCour.getText().isEmpty()) {
+            list = eDao.getByStuNameAndCourName(sStud.getText(), sCour.getText());
+        } else if (!sStud.getText().isEmpty()) {
             list = eDao.getByStudentName(sStud.getText());
         } else if (!sCour.getText().isEmpty()) {
             list = eDao.getByCourseName(sCour.getText());

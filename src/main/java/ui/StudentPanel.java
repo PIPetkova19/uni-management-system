@@ -107,7 +107,9 @@ public class StudentPanel extends JPanel {
         model.setRowCount(0);
         List<Student> list;
         //Ако има име → търси по име;ако има факултетен → търси по него;inace vrashta vs
-        if (!sName.getText().isEmpty()) {
+        if (!sName.getText().isEmpty() && !sFac.getText().isEmpty()) {
+            list = dao.getByNameAndFac(sName.getText(), sFac.getText());
+        } else if (!sName.getText().isEmpty()) {
             list = dao.getByName(sName.getText());
         } else if (!sFac.getText().isEmpty()) {
             list = dao.getByFacNum(sFac.getText());

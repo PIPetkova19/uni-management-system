@@ -71,6 +71,19 @@ public class EnrollmentDao {
         }
     }
 
+    public List<Enrollment> getByStuNameAndCourName(String stuName, String courName) {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery(
+                            "SELECT e FROM Enrollment e WHERE e.student.name LIKE :stuName AND e.course.name LIKE :courName",
+                            Enrollment.class)
+                    .setParameter("stuName", "%" + stuName + "%")
+                    .setParameter("courName", "%" + courName + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding enrollments by student name and course name", e);
+        }
+    }
+
     public void update(Enrollment enrollment) {
         try (EntityManager em = emf.createEntityManager()) {
             try {

@@ -62,6 +62,19 @@ public class AcademicStaffDao {
         }
     }
 
+    public List<AcademicStaff> getByNameAndEmail(String name, String email) {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery(
+                            "SELECT a FROM AcademicStaff a WHERE a.name LIKE :name AND a.email LIKE :email",
+                            AcademicStaff.class)
+                    .setParameter("name", "%" + name + "%")
+                    .setParameter("email", "%" + email + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding staff by name and email", e);
+        }
+    }
+
     public void update(AcademicStaff staff) {
         try (EntityManager em = emf.createEntityManager()) {
             try {

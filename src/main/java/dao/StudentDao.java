@@ -32,6 +32,18 @@ public class StudentDao {
         }
     }
 
+    public List<Student> getByNameAndFac(String name, String fac) {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery(
+                            "SELECT s FROM Student s WHERE s.name LIKE :name AND s.facNum LIKE :fac",
+                            Student.class)
+                    .setParameter("name", "%" + name + "%")
+                    .setParameter("fac", "%" + fac + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding students by name and faculty number", e);
+        }
+    }
     public List<Student> getAll() {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery("SELECT s FROM Student s", Student.class).getResultList();

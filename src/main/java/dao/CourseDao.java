@@ -70,6 +70,19 @@ public class CourseDao {
         }
     }
 
+    public List<Course> getByNameAndInstructor(String name, String instructorName) {
+        try (EntityManager em = emf.createEntityManager()) {
+            return em.createQuery(
+                            "SELECT c FROM Course c WHERE c.name LIKE :name AND c.academicStaff.name LIKE :instructorName",
+                            Course.class)
+                    .setParameter("name", "%" + name + "%")
+                    .setParameter("instructorName", "%" + instructorName + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Error finding courses by name and instructor", e);
+        }
+    }
+
     public void update(Course course) {
         try (EntityManager em = emf.createEntityManager()) {
             try {

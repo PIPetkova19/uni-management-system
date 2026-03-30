@@ -95,7 +95,9 @@ public class CoursePanel extends JPanel {
     private void search() {
         model.setRowCount(0);
         List<Course> list;
-        if (!sName.getText().isEmpty()) {
+        if (!sName.getText().isEmpty() && !sInst.getText().isEmpty()) {
+            list = cDao.getByNameAndInstructor(sName.getText(), sInst.getText());
+        } else if (!sName.getText().isEmpty()) {
             list = cDao.getByName(sName.getText());
         } else if (!sInst.getText().isEmpty()) {
             list = cDao.getByInstructor(sInst.getText());

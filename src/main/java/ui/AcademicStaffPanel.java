@@ -91,7 +91,9 @@ public class AcademicStaffPanel extends JPanel {
     private void search() {
         model.setRowCount(0);
         List<AcademicStaff> list;
-        if (!sName.getText().isEmpty()) {
+        if (!sName.getText().isEmpty() && !sEmail.getText().isEmpty()) {
+            list = dao.getByNameAndEmail(sName.getText(), sEmail.getText());
+        } else if (!sName.getText().isEmpty()) {
             list = dao.getByName(sName.getText());
         } else if (!sEmail.getText().isEmpty()) {
             list = dao.getByEmail(sEmail.getText());

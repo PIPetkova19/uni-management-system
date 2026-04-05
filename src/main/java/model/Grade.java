@@ -1,11 +1,11 @@
 package model;
 
 public enum Grade {
-    OTLICEN(6),
-    MNOGO_DOBAR(5),
-    DOBAR(4),
-    SREDEN(3),
-    SLAB(2);
+    EXCELLENT(6),
+    GOOD(5),
+    AVERAGE(4),
+    BELOW_AVERAGE(3),
+    FAILING(2);
 
     private final int value;
 

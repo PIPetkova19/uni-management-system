@@ -52,8 +52,8 @@ public class EnrollmentDao {
     public List<Enrollment> getByCourseName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT e FROM Enrollment e JOIN e.course c WHERE c.name LIKE :name", Enrollment.class)
-                    .setParameter("name", "%" + name + "%")
+                            "SELECT e FROM Enrollment e JOIN e.course c WHERE c.name = :name", Enrollment.class)
+                    .setParameter("name",  name)
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding enrollments by course name", e);
@@ -63,8 +63,8 @@ public class EnrollmentDao {
     public List<Enrollment> getByStudentName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT e FROM Enrollment e JOIN e.student s WHERE s.name LIKE :name", Enrollment.class)
-                    .setParameter("name", "%" + name + "%")
+                            "SELECT e FROM Enrollment e JOIN e.student s WHERE s.name = :name", Enrollment.class)
+                    .setParameter("name",  name )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding enrollments by student name", e);
@@ -74,10 +74,10 @@ public class EnrollmentDao {
     public List<Enrollment> getByStuNameAndCourName(String stuName, String courName) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT e FROM Enrollment e WHERE e.student.name LIKE :stuName AND e.course.name LIKE :courName",
+                            "SELECT e FROM Enrollment e WHERE e.student.name = :stuName AND e.course.name = :courName",
                             Enrollment.class)
-                    .setParameter("stuName", "%" + stuName + "%")
-                    .setParameter("courName", "%" + courName + "%")
+                    .setParameter("stuName", stuName )
+                    .setParameter("courName", courName )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding enrollments by student name and course name", e);

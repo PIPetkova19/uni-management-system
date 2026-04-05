@@ -43,8 +43,8 @@ public class AcademicStaffDao {
     public List<AcademicStaff> getByName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT a FROM AcademicStaff a WHERE a.name LIKE :name", AcademicStaff.class)
-                    .setParameter("name", "%" + name + "%")
+                            "SELECT a FROM AcademicStaff a WHERE a.name = :name", AcademicStaff.class)
+                    .setParameter("name",  name )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding staff by name", e);
@@ -54,8 +54,8 @@ public class AcademicStaffDao {
     public List<AcademicStaff> getByEmail(String email) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT a FROM AcademicStaff a WHERE a.email LIKE :email", AcademicStaff.class)
-                    .setParameter("email", "%" + email + "%")
+                            "SELECT a FROM AcademicStaff a WHERE a.email = :email", AcademicStaff.class)
+                    .setParameter("email",  email )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding staff by email", e);
@@ -65,10 +65,10 @@ public class AcademicStaffDao {
     public List<AcademicStaff> getByNameAndEmail(String name, String email) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT a FROM AcademicStaff a WHERE a.name LIKE :name AND a.email LIKE :email",
+                            "SELECT a FROM AcademicStaff a WHERE a.name = :name AND a.email = :email",
                             AcademicStaff.class)
-                    .setParameter("name", "%" + name + "%")
-                    .setParameter("email", "%" + email + "%")
+                    .setParameter("name", name )
+                    .setParameter("email",  email )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding staff by name and email", e);

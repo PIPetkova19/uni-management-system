@@ -51,8 +51,8 @@ public class CourseDao {
     public List<Course> getByName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT c FROM Course c WHERE c.name LIKE :name", Course.class)
-                    .setParameter("name", "%" + name + "%")
+                            "SELECT c FROM Course c WHERE c.name = :name", Course.class)
+                    .setParameter("name", name )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding courses by name", e);
@@ -62,8 +62,8 @@ public class CourseDao {
     public List<Course> getByInstructor(String instructorName) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT c FROM Course c JOIN c.academicStaff a WHERE a.name LIKE :name", Course.class)
-                    .setParameter("name", "%" + instructorName + "%")
+                            "SELECT c FROM Course c JOIN c.academicStaff a WHERE a.name = :name", Course.class)
+                    .setParameter("name",  instructorName )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding courses by instructor", e);
@@ -73,10 +73,10 @@ public class CourseDao {
     public List<Course> getByNameAndInstructor(String name, String instructorName) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT c FROM Course c WHERE c.name LIKE :name AND c.academicStaff.name LIKE :instructorName",
+                            "SELECT c FROM Course c WHERE c.name = :name AND c.academicStaff.name = :instructorName",
                             Course.class)
-                    .setParameter("name", "%" + name + "%")
-                    .setParameter("instructorName", "%" + instructorName + "%")
+                    .setParameter("name", name )
+                    .setParameter("instructorName",  instructorName )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding courses by name and instructor", e);

@@ -35,10 +35,10 @@ public class StudentDao {
     public List<Student> getByNameAndFac(String name, String fac) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT s FROM Student s WHERE s.name LIKE :name AND s.facNum LIKE :fac",
+                            "SELECT s FROM Student s WHERE s.name = :name AND s.facNum = :fac",
                             Student.class)
-                    .setParameter("name", "%" + name + "%")
-                    .setParameter("fac", "%" + fac + "%")
+                    .setParameter("name", name )
+                    .setParameter("fac",  fac )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding students by name and faculty number", e);
@@ -55,8 +55,8 @@ public class StudentDao {
     public List<Student> getByName(String name) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT s FROM Student s WHERE s.name LIKE :name", Student.class)
-                    .setParameter("name", "%" + name + "%")
+                            "SELECT s FROM Student s WHERE s.name = :name", Student.class)
+                    .setParameter("name",  name )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding students by name", e);
@@ -66,8 +66,8 @@ public class StudentDao {
     public List<Student> getByFacNum(String facNum) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT s FROM Student s WHERE s.facNum LIKE :facNum", Student.class)
-                    .setParameter("facNum", "%" + facNum + "%")
+                            "SELECT s FROM Student s WHERE s.facNum = :facNum", Student.class)
+                    .setParameter("facNum", facNum )
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding students by faculty number", e);

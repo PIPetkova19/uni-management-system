@@ -9,12 +9,15 @@ import java.util.List;
 
 public class AcademicStaffPanel extends JPanel {
     private final AcademicStaffDao dao = new AcademicStaffDao();
+
     private final DefaultTableModel model = new DefaultTableModel(
             new String[]{"Id", "Name", "Title", "Email"}, 0);
+
     private final JTable table = new JTable(model);
 
     private final JTextField sName = new JTextField(10),
                             sEmail = new JTextField(10);
+
     private final JTextField fName = new JTextField(10),
                             fTitle = new JTextField(10),
                             fEmail = new JTextField(10);
@@ -22,6 +25,7 @@ public class AcademicStaffPanel extends JPanel {
     public AcademicStaffPanel() {
         setLayout(new BorderLayout(10, 10));
 
+        //north
         JPanel north = new JPanel();
 
         north.add(new JLabel("Name:"));
@@ -36,9 +40,12 @@ public class AcademicStaffPanel extends JPanel {
 
         add(north, BorderLayout.NORTH);
 
+        //center
         add(new JScrollPane(table), BorderLayout.CENTER);
 
+        //south
         JPanel south = new JPanel(new GridLayout(3, 4, 30, 10));
+
         south.add(new JLabel("Name:"));
         south.add(fName);
         south.add(new JLabel("Title:"));

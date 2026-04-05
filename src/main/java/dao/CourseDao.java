@@ -3,9 +3,7 @@ package dao;
 import jakarta.persistence.EntityManager;
 import model.AcademicStaff;
 import model.Course;
-import model.Enrollment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static utils.JpaUtil.emf;
@@ -54,27 +52,27 @@ public class CourseDao {
         }
     }
 
-    public List<Course> getByInstructor(String instructorName) {
+    public List<Course> getByAcademicStaff(String academicStaff) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
                             "SELECT c FROM Course c JOIN c.academicStaff a WHERE a.name = :name", Course.class)
-                    .setParameter("name", instructorName)
+                    .setParameter("name", academicStaff)
                     .getResultList();
         } catch (Exception e) {
-            throw new RuntimeException("Error finding courses by instructor", e);
+            throw new RuntimeException("Error finding courses by academic staff", e);
         }
     }
 
-    public List<Course> getByNameAndInstructor(String name, String instructorName) {
+    public List<Course> getByNameAndAcademicStaff(String name, String academicStaff) {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT c FROM Course c WHERE c.name = :name AND c.academicStaff.name = :instructorName",
+                            "SELECT c FROM Course c WHERE c.name = :name AND c.academicStaff.name = :academicStaff",
                             Course.class)
                     .setParameter("name", name)
-                    .setParameter("instructorName", instructorName)
+                    .setParameter("academicStaff", academicStaff)
                     .getResultList();
         } catch (Exception e) {
-            throw new RuntimeException("Error finding courses by name and instructor", e);
+            throw new RuntimeException("Error finding courses by name and academic staff", e);
         }
     }
 

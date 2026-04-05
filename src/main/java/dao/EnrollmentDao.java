@@ -87,7 +87,6 @@ public class EnrollmentDao {
                 em.getTransaction().commit();
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
-                throw new RuntimeException("Error updating enrollment", e);
             }
         } catch (Exception e) {
             throw new RuntimeException("Error updating enrollment", e);

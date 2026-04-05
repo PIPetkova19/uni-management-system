@@ -8,6 +8,7 @@ public class MainFrame extends JFrame {
         setTitle("University Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 500);
+
         setLocationRelativeTo(null);
 
         JTabbedPane tabs = new JTabbedPane();

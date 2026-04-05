@@ -91,17 +91,14 @@ public class StudentDao {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-
                 Student managed = em.merge(student);
-                for (Enrollment enrollment : List.copyOf(managed.getEnrollments())) {
-                    Course course = enrollment.getCourse();
-                    if (course != null) course.removeEnrollment(enrollment);
-                    managed.removeEnrollment(enrollment);
-                    em.remove(enrollment);
-                }
+                managed.getEnrollments().forEach(enrollment -> {
+                    if (enrollment.getCourse() != null) {
+                        enrollment.getCourse().removeEnrollment(enrollment);
+                    }
+                });
                 em.remove(managed);
                 em.getTransaction().commit();
-
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error deleting student", e);

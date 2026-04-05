@@ -93,13 +93,9 @@ public class AcademicStaffDao {
             try {
                 em.getTransaction().begin();
                 AcademicStaff managed = em.merge(academicStaff);
-                for (Course course : List.copyOf(managed.getCourses())) {
-                    managed.removeCourse(course);
-                }
                 em.remove(managed);
                 em.getTransaction().commit();
             } catch (Exception e) {
-                if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error deleting academic staff", e);
             }
         }

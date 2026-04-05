@@ -3,7 +3,9 @@ package dao;
 import jakarta.persistence.EntityManager;
 import model.AcademicStaff;
 import model.Course;
+import model.Enrollment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static utils.JpaUtil.emf;
@@ -49,7 +51,7 @@ public class CourseDao {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
                             "SELECT c FROM Course c WHERE c.name = :name", Course.class)
-                    .setParameter("name", name )
+                    .setParameter("name", name)
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding courses by name", e);
@@ -60,7 +62,7 @@ public class CourseDao {
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
                             "SELECT c FROM Course c JOIN c.academicStaff a WHERE a.name = :name", Course.class)
-                    .setParameter("name",  instructorName )
+                    .setParameter("name", instructorName)
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding courses by instructor", e);
@@ -72,8 +74,8 @@ public class CourseDao {
             return em.createQuery(
                             "SELECT c FROM Course c WHERE c.name = :name AND c.academicStaff.name = :instructorName",
                             Course.class)
-                    .setParameter("name", name )
-                    .setParameter("instructorName",  instructorName )
+                    .setParameter("name", name)
+                    .setParameter("instructorName", instructorName)
                     .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Error finding courses by name and instructor", e);
@@ -103,17 +105,19 @@ public class CourseDao {
             }
         }
     }
-
     public void delete(Course course) {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-                Course managedCourse = em.merge(course);
-                AcademicStaff staff = managedCourse.getAcademicStaff();
-                if (staff != null) {
-                    staff.removeCourse(managedCourse);
+                Course managedCourse = em.find(Course.class, course.getId());
+                if (managedCourse != null) {
+                    managedCourse.getEnrollments().clear();
+                    AcademicStaff staff = managedCourse.getAcademicStaff();
+                    if (staff != null) {
+                        staff.getCourses().remove(managedCourse);
+                    }
+                    em.remove(managedCourse);
                 }
-                em.remove(managedCourse);
                 em.getTransaction().commit();
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();

@@ -14,17 +14,14 @@ public class CourseDao {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-
-                AcademicStaff staff = course.getAcademicStaff();
-                if (staff != null) {
-                    AcademicStaff managedStaff = em.merge(staff);
+                AcademicStaff academicStaff = course.getAcademicStaff();
+                if (academicStaff != null) {
+                    AcademicStaff managedStaff = em.merge(academicStaff);
                     course.setAcademicStaff(null);
                     managedStaff.addCourse(course);
                 }
-
                 em.persist(course);
                 em.getTransaction().commit();
-
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error saving course", e);
@@ -87,28 +84,19 @@ public class CourseDao {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-
                 Course managedCourse = em.merge(course);
-
-                // Re-link the staff using the helper so both sides stay in sync
                 AcademicStaff newStaff = course.getAcademicStaff();
-
-                // Remove from old staff if different
                 AcademicStaff oldStaff = managedCourse.getAcademicStaff();
                 if (oldStaff != null && !oldStaff.equals(newStaff)) {
                     oldStaff.removeCourse(managedCourse);
                 }
-
-                // Add to new staff
                 if (newStaff != null) {
                     AcademicStaff managedStaff = em.merge(newStaff);
                     managedStaff.addCourse(managedCourse);
                 } else {
                     managedCourse.setAcademicStaff(null);
                 }
-
                 em.getTransaction().commit();
-
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error updating course", e);
@@ -120,17 +108,13 @@ public class CourseDao {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-
                 Course managedCourse = em.merge(course);
-
                 AcademicStaff staff = managedCourse.getAcademicStaff();
                 if (staff != null) {
                     staff.removeCourse(managedCourse);
                 }
-
                 em.remove(managedCourse);
                 em.getTransaction().commit();
-
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error deleting course", e);

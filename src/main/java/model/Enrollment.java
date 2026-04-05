@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
-@Entity //student course join table
+@Entity
 public class Enrollment {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)

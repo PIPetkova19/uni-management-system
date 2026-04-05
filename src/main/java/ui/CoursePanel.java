@@ -26,7 +26,7 @@ public class CoursePanel extends JPanel {
         JPanel north = new JPanel();
         north.add(new JLabel("Course:"));
         north.add(sName);
-        north.add(new JLabel("Instructor:"));
+        north.add(new JLabel("Academic Staff:"));
         north.add(sInst);
 
         JButton btnSearch = new JButton("Search");
@@ -88,8 +88,7 @@ public class CoursePanel extends JPanel {
     private void load() {
         model.setRowCount(0);
         cDao.getAll().forEach(c -> model.addRow(
-                new Object[]{c.getId(), c.getName(), c.getAcademicStaff() != null ?
-                        c.getAcademicStaff().getName() : "-"}));
+                new Object[]{c.getId(), c.getName(), c.getAcademicStaff().getName()}));
     }
 
     private void search() {

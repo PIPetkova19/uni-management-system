@@ -15,20 +15,12 @@ public class Student {
     private String email;
     private String facNum;
 
-    @OneToMany(mappedBy = "student",
+    @OneToMany(
+            mappedBy = "student",
             cascade = CascadeType.ALL,
-            orphanRemoval = true)
+            orphanRemoval = true
+    )
     private List<Enrollment> enrollments= new ArrayList<>();
-
-    public void addEnrollment(Enrollment enrollment) {
-        enrollments.add(enrollment);
-        enrollment.setStudent(this);
-    }
-
-    public void removeEnrollment(Enrollment enrollment) {
-        enrollments.remove(enrollment);
-        enrollment.setStudent(null);
-    }
 
     public Student() {}
 
@@ -72,6 +64,16 @@ public class Student {
 
     public void setEnrollments(List<Enrollment> enrollments) {
         this.enrollments = enrollments;
+    }
+
+    public void addEnrollment(Enrollment enrollment) {
+        enrollments.add(enrollment);
+        enrollment.setStudent(this);
+    }
+
+    public void removeEnrollment(Enrollment enrollment) {
+        enrollments.remove(enrollment);
+        enrollment.setStudent(null);
     }
 
     @Override

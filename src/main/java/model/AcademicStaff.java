@@ -12,7 +12,7 @@ public class AcademicStaff {
     private long id;
 
     private String name;
-    private String title;//profesor,asistent
+    private String title;
     private String email;
 
     @OneToMany(
@@ -21,16 +21,6 @@ public class AcademicStaff {
             orphanRemoval = true
     )
     private List<Course> courses=new ArrayList<>();
-
-    public void addCourse(Course course) {
-        courses.add(course);
-        course.setAcademicStaff(this);
-    }
-
-    public void removeCourse(Course course) {
-        courses.remove(course);
-        course.setAcademicStaff(null);
-    }
 
     public AcademicStaff() {}
 
@@ -74,6 +64,16 @@ public class AcademicStaff {
 
     public void setCourses(List<Course> courses) {
         this.courses = courses;
+    }
+
+    public void addCourse(Course course) {
+        courses.add(course);
+        course.setAcademicStaff(this);
+    }
+
+    public void removeCourse(Course course) {
+        courses.remove(course);
+        course.setAcademicStaff(null);
     }
 
     @Override

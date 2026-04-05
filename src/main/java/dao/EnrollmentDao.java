@@ -13,19 +13,14 @@ public class EnrollmentDao {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-
                 Student managedStudent = em.merge(student);
                 Course  managedCourse  = em.merge(course);
-
                 Enrollment enrollment = new Enrollment();
                 enrollment.setGrade(grade);
-
                 managedStudent.addEnrollment(enrollment);
                 managedCourse.addEnrollment(enrollment);
-
                 em.persist(enrollment);
                 em.getTransaction().commit();
-
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error saving enrollment", e);
@@ -87,7 +82,6 @@ public class EnrollmentDao {
     public void update(Enrollment enrollment) {
         try (EntityManager em = emf.createEntityManager()) {
             try {
-
                 em.getTransaction().begin();
                 em.merge(enrollment);
                 em.getTransaction().commit();
@@ -104,15 +98,11 @@ public class EnrollmentDao {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-
                 Enrollment managed = em.merge(enrollment);
-
                 if (managed.getStudent() != null) managed.getStudent().removeEnrollment(managed);
                 if (managed.getCourse()  != null) managed.getCourse().removeEnrollment(managed);
-
                 em.remove(managed);
                 em.getTransaction().commit();
-
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error deleting enrollment", e);

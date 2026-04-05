@@ -10,11 +10,11 @@ import static utils.JpaUtil.emf;
 
 public class AcademicStaffDao {
 
-    public void save(AcademicStaff staff) {
+    public void save(AcademicStaff academicStaff) {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-                em.persist(staff);
+                em.persist(academicStaff);
                 em.getTransaction().commit();
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -47,7 +47,7 @@ public class AcademicStaffDao {
                     .setParameter("name",  name )
                     .getResultList();
         } catch (Exception e) {
-            throw new RuntimeException("Error finding staff by name", e);
+            throw new RuntimeException("Error finding academic staff by name", e);
         }
     }
 
@@ -58,7 +58,7 @@ public class AcademicStaffDao {
                     .setParameter("email",  email )
                     .getResultList();
         } catch (Exception e) {
-            throw new RuntimeException("Error finding staff by email", e);
+            throw new RuntimeException("Error finding academic staff by email", e);
         }
     }
 
@@ -71,15 +71,15 @@ public class AcademicStaffDao {
                     .setParameter("email",  email )
                     .getResultList();
         } catch (Exception e) {
-            throw new RuntimeException("Error finding staff by name and email", e);
+            throw new RuntimeException("Error finding academic staff by name and email", e);
         }
     }
 
-    public void update(AcademicStaff staff) {
+    public void update(AcademicStaff academicStaff) {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-                em.merge(staff);
+                em.merge(academicStaff);
                 em.getTransaction().commit();
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -88,20 +88,16 @@ public class AcademicStaffDao {
         }
     }
 
-    public void delete(AcademicStaff staff) {
+    public void delete(AcademicStaff academicStaff) {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 em.getTransaction().begin();
-
-                AcademicStaff managed = em.merge(staff);
-
+                AcademicStaff managed = em.merge(academicStaff);
                 for (Course course : List.copyOf(managed.getCourses())) {
                     managed.removeCourse(course);
                 }
-
                 em.remove(managed);
                 em.getTransaction().commit();
-
             } catch (Exception e) {
                 if (em.getTransaction().isActive()) em.getTransaction().rollback();
                 throw new RuntimeException("Error deleting academic staff", e);

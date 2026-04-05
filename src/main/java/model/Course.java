@@ -16,20 +16,12 @@ public class Course {
     @ManyToOne
     private AcademicStaff academicStaff;
 
-    @OneToMany(mappedBy = "course",
+    @OneToMany(
+            mappedBy = "course",
             cascade = CascadeType.ALL,
-            orphanRemoval = true)
+            orphanRemoval = true
+    )
     private List<Enrollment> enrollments= new ArrayList<>();
-
-    public void addEnrollment(Enrollment enrollment) {
-        enrollments.add(enrollment);
-        enrollment.setCourse(this);
-    }
-
-    public void removeEnrollment(Enrollment enrollment) {
-        enrollments.remove(enrollment);
-        enrollment.setCourse(null);
-    }
 
     public Course() {}
 
@@ -64,6 +56,16 @@ public class Course {
 
     public void setEnrollments(List<Enrollment> enrollments) {
         this.enrollments = enrollments;
+    }
+
+    public void addEnrollment(Enrollment enrollment) {
+        enrollments.add(enrollment);
+        enrollment.setCourse(this);
+    }
+
+    public void removeEnrollment(Enrollment enrollment) {
+        enrollments.remove(enrollment);
+        enrollment.setCourse(null);
     }
 
     @Override

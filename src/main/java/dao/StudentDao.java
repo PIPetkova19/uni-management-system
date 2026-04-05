@@ -93,17 +93,12 @@ public class StudentDao {
                 em.getTransaction().begin();
 
                 Student managed = em.merge(student);
-
-                // Clean up each enrollment on BOTH sides before removing the student.
-                // Without this, the Course still holds a reference to the enrollment
-                // and JPA throws a constraint violation.
                 for (Enrollment enrollment : List.copyOf(managed.getEnrollments())) {
                     Course course = enrollment.getCourse();
                     if (course != null) course.removeEnrollment(enrollment);
                     managed.removeEnrollment(enrollment);
                     em.remove(enrollment);
                 }
-
                 em.remove(managed);
                 em.getTransaction().commit();
 

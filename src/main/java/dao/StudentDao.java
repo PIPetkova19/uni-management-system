@@ -1,8 +1,6 @@
 package dao;
 
 import jakarta.persistence.EntityManager;
-import model.Course;
-import model.Enrollment;
 import model.Student;
 
 import java.util.List;
